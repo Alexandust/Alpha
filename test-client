@@ -1,19 +1,25 @@
 import socket
 
-s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
-host = '120.25.195.128'
+host = '127.0.0.1'
 port = 8090
 
-s.connect((host,port))
+s=socket.socket()
+s.bind((host,port))
 
-ip,port=s.getsockname()
-print('本机IP和PORT{}{}'.format(ip,port))
-http_request='GET/HTTP/1.1\r\nhost:{}\r\n\r\n'.format(host)
+while True:
+    s.listen(5)
+    connection,address=s.accept()
+    request=connection.recv(1024)
+    request=request.decode('utf-8')
+    print('ip and request,{}\n{}'.format(address,request.decode('utf-8')))
+    try:
+        path=request.split()[1]
+        response=response_for_path(path)
+        connection.sendall(response)
+    except Exception as e:
+        log('error',e)
+    response=b'HTTP/1.1 200 hao\r\n\r\n<h1>hello world!</h1>'
 
-request=http_request.encode('utf-8')
-print('请求',request)
-s.send(request)
-
-buffer_size=2047
-response=s.recv(buffer_size)
+    connection.sendall(response)
+    connection.close()
