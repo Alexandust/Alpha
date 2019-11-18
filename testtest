@@ -1,0 +1,126 @@
+
+# -*- coding: UTF-8 -*-
+
+
+import os
+from jiaowuchu import jw
+import json
+from mysql import connect,select,zc,relogin,redata,finddata,forget,puttask,putdeal,prepos,findtask
+#from flask_cors import *
+
+os.environ['NLS_LANG'] = 'SIMPLIFIED CHINESE_CHINA.UTF8'
+
+from flask import Flask ,request
+from flask_wtf.file import FileField, FileRequired, FileAllowed
+
+app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
+
+
+@app.route('/regester', methods=[ 'POST'])
+def regestertest():
+    user = request.json.get('user')
+    password = request.json.get('password')
+    jwaccount = request.json.get('jwaccount')
+    jwpasswd = request.json.get('jwpasswd')
+    result = regestercontent(user,password,jwaccount,jwpasswd)
+    return result
+
+def regestercontent(user,password,jwaccount,jwpasswd):
+    flag1=jw(jwaccount,jwpasswd)
+    if flag1=='1000':
+        flag=zc(user,password,jwaccount)
+    else:
+        flag='3001'
+    return flag
+
+@app.route('/login', methods=[ 'POST'])
+
+def logintest():
+
+    user = request.json.get('user')
+    password = request.json.get('password')
+    result1 = logincontent(user,password)
+    return result1
+
+def logincontent(user,password):
+    username,passwd,jwaccount=relogin(user,password)
+    len0=len(username)
+    flag='4001'
+    for i in range(0,len0):
+        if user==username[i] and password==passwd[i]:
+            jwac=jwaccount[i]
+            flag=jwac
+    return flag
+@app.route('/forget',methods=['POST'])
+def forgettest():
+    user=request.json.get('user')
+    jwaccount=request.json.get('jwaccount')
+    result2=forget(user,jwaccount)
+    return result2
+
+@app.route('/data', methods=[ 'POST'])
+def datatest():
+    accountname = request.json.get('accountname')
+    room = request.json.get('room')
+    qq = request.json.get('qq')
+    weixin = request.json.get('weixin')
+    jwac=request.json.get('jwac')
+    result3 =redata(accountname,room,qq,weixin,jwac)
+    return result3
+
+@app.route('/finddata', methods=[ 'POST'])
+def finddatatest():
+    jwac=request.json.get('jwaccount')
+    text =finddata(jwac)
+    return text
+
+@app.route('/puttask', methods=[ 'POST'])#任务管理
+def puttasktest():
+    jwac = request.json.get('jwac')
+    tno=request.json.get('tno')#创建或查找tno默认为空
+    title=request.json.get('title')
+    label=request.json.get('label')
+    content=request.json.get('content')
+    method=str(request.json.get('method'))
+    result4=puttask(jwac,tno,title,label,content,method)
+    if method=='findtno':
+        result4=str(result4)
+    return result4
+
+@app.route('/putdeal', methods=[ 'POST'])#二手交易管理
+def putdealtest():
+    jwac = request.json.get('jwac')
+    dno=request.json.get('dno')#创建或查找tno默认为空
+    title2=request.json.get('title')
+    label2=request.json.get('label')
+    content2=request.json.get('content')
+    method2=str(request.json.get('method'))
+    result5=putdeal(jwac,dno,title2,label2,content2,method2)
+    if method2=='finddno':
+        result5=str(result5)
+    return result5
+@app.route('/prepos', methods=[ 'POST'])#顶置任务或者二手交易
+def prepositiontest():
+    jwac = request.json.get('jwac')
+    xno = request.json.get('xno')
+    type=request.json.get('type')
+    result6=prepos(jwac,xno,type)
+    return result6
+
+@app.route('/findtask', methods=[ 'POST'])#查询任务列表
+def findtasktest():
+    label=request.json.get('label')
+    title,jwac=findtask(label)
+    return str(title)+str(jwac)
+
+@app.route('/findtask', methods=[ 'POST'])#查询任务列表
+def finddealtest():
+    label = request.json.get('label')
+    result8 = finddeal(label)
+    return result8
+
+if __name__ == '__main__':
+
+    app.run(host='172.26.78.22', port=5590)
+    ''''''
